@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:10.4
+    restart: unless-stopped
+    volumes:
+      - ./volumes/db-data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      POSTGRES_DB: "postgresdb"
+      POSTGRES_USER: "postgresadmin"
+      POSTGRES_PASSWORD: "dCfGThMty2yVZf"
+      TZ: Asia/Tehran
+    ports:
+      - 5432:5432
+    networks:
+      mattermost-network:
+        aliases:
+          - db        
+  app:
+    depends_on:
+      - db          
+    image: mattermost/mattermost-prod-app:latest
+    restart: unless-stopped
+    volumes:
+      - ./volumes/app-data:/mattermost/data
+      - ./volumes/app-config:/mattermost/config
+      - ./volumes/app-plugin:/mattermost/plugin
+    environment:
+      # set same as db credentials and dbname
+      DB_HOST: "db"
+      DB_PORT_NUMBER: "5432" 
+      MM_USERNAME: "postgresadmin"
+      MM_PASSWORD: "dCfGThMty2yVZf"
+      MM_DBNAME: "postgresdb"
+      MM_SQLSETTINGS_DATASOURCE: "postgres://postgresadmin:pCfGTkMty2yVZz@db:5432/postgresdb?sslmode=disable&connect_timeout=10"
+      TZ: Asia/Tehran
+    ports:
+      - 8080:8000
+    networks:
+      - mattermost-network
+
+  fix: 
+    # Set appropriate permission for mattermost directories
+    image: busybox
+    command: ["/bin/sh", "-c", "chown -R 2000:2000 /data && chown -R 2000:2000 /config && chown -R 2000:2000 /plugin"]
+    volumes: 
+      - ./volumes/app-data:/data
+      - ./volumes/app-config:/config
+      - ./volumes/app-plugin:/plugin
+    networks:
+      - mattermost-network 
+        
+networks:
+  mattermost-network:
+    driver: bridge
