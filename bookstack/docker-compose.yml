@@ -1,0 +1,37 @@
+version: '3.9'
+services:
+  bookstack:
+    image: solidnerd/bookstack:23.6
+    container_name: bookstack
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/var/www/html/public/uploads
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - APP_NAME=BookStack
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_LOG=daily
+      - APP_URL=http://localhost:8080
+      - APP_KEY=base64:KpqK7OaRtUW0fyW0vY4pPUaPMEX7tfKpqK7OaRtUW0fyW0vY4pPUaPMEX7d
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=bookstack
+      - DB_USERNAME=bookstack_user
+      - DB_PASSWORD=admin123admin
+    depends_on:
+      - db
+  db:
+    image: mysql:8.1
+    container_name: bookstack-mysql
+    restart: always
+    environment:
+      - MYSQL_DATABASE=bookstack
+      - MYSQL_USER=bookstack_user
+      - MYSQL_PASSWORD=admin123admin
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+    volumes:
+      - ./db:/var/lib/mysql
