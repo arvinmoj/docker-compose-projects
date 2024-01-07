@@ -33,7 +33,7 @@ services:
       MM_USERNAME: "postgresadmin"
       MM_PASSWORD: "dCfGThMty2yVZf"
       MM_DBNAME: "postgresdb"
-      MM_SQLSETTINGS_DATASOURCE: "postgres://postgresadmin:pCfGTkMty2yVZz@db:5432/postgresdb?sslmode=disable&connect_timeout=10"
+      MM_SQLSETTINGS_DATASOURCE: "postgres://postgresadmin:dCfGThMty2yVZf@db:5432/postgresdb?sslmode=disable&connect_timeout=10"
       TZ: Asia/Tehran
     ports:
       - 8080:8000
