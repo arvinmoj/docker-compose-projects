@@ -1,0 +1,76 @@
+version: "3.9"
+
+services:
+  web:
+    image: jitsi/web:stable-10184
+    restart: always
+    ports:
+      - "8000:80"
+      - "8443:433"
+    volumes:
+      - /opt/jitsi-storage/web:/config:Z
+      - /opt/jitsi-storage/web/crontabs:/var/spool/cron/crontabs:Z
+      - /opt/jitsi-storage/transcripts:/usr/share/jitsi-meet/transcripts:Z
+      - /opt/jitsi-storage/web/load-test:/usr/share/jitsi-meet/load-test:Z
+    environment:
+      - ENABLE_AUTH=0
+      - ENABLE_GUESTS=1
+      - XMPP_DOMAIN=meet.jitsi
+      - XMPP_SERVER=prosody
+      - XMPP_BOSH_URL_BASE=http://prosody:5280
+      - XMPP_MUC_DOMAIN=muc.meet.jitsi
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.meet.jitsi
+      - XMPP_RECORDER_DOMAIN=recorder.meet.jitsi
+      - JICOFO_AUTH_USER=focus
+      - PUBLIC_URL=https://meet.payrad.org
+    depends_on:
+      - prosody
+      - jicofo
+      - jvb
+
+  prosody:
+    image: jitsi/prosody:stable-10184
+    restart: always
+    volumes:
+      - /opt/jitsi-storage/prosody/config:/config:Z
+      - /opt/jitsi-storage/prosody/prosody-plugins-custom:/prosody-plugins-custom:Z
+    environment:
+      - XMPP_DOMAIN=meet.jitsi
+      - XMPP_MUC_DOMAIN=muc.meet.jitsi
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.meet.jitsi
+      - JICOFO_COMPONENT_SECRET=iQVngU7qXFPNgHPJdxbUovNqpGi27P57z
+      - JICOFO_AUTH_PASSWORD=bkEPxfRobikq2Yyi2v3DTCKkjC9eKFMfn
+      - JVB_AUTH_PASSWORD=QU9PQCV6D7KVkJFgV9DeVRrWpq7TGVERC
+
+  jicofo:
+    image: jitsi/jicofo:stable-10184
+    restart: always
+    depends_on:
+      - prosody
+    volumes:
+      - /opt/jitsi-storage/jicofo:/config:Z
+    environment:
+      - XMPP_DOMAIN=meet.jitsi
+      - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.meet.jitsi
+      - XMPP_SERVER=prosody
+      - JICOFO_COMPONENT_SECRET=iQVngU7qXFPNgHPJdxbUovNqpGi27P57z
+      - JICOFO_AUTH_USER=focus
+      - JICOFO_AUTH_PASSWORD=bkEPxfRobikq2Yyi2v3DTCKkjC9eKFMfn
+
+  jvb:
+    image: jitsi/jvb:stable-10184
+    restart: always
+    depends_on:
+      - prosody
+    ports:
+      - "10000:10000/udp"
+    volumes:
+      - /opt/jitsi-storage/jvb:/config:Z
+    environment:
+      - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.meet.jitsi
+      - XMPP_SERVER=prosody
+      - JVB_AUTH_USER=jvb
+      - JVB_AUTH_PASSWORD=QU9PQCV6D7KVkJFgV9DeVRrWpq7TGVERC
+      - DOCKER_HOST_ADDRESS=172.30.30.193
